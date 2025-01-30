@@ -1,125 +1,69 @@
 <% layout("/layouts/boilerplate") %>
 
-    <style>
-       #filters{
-        display:flex;
-        flex-wrap:wrap;
-        align-items: center;
-       }
-       .filter {
-        text-align: center;
-        margin-right: 2rem;
-        margin-top: 2rem;
-        opacity: 0.7;
-       }
-       .filter:hover{
-        opacity: 1;
-        cursor: pointer;
-       }
-       .filter p{
-        font-size: 0.8rem;
-       }
-       .tax-info{
-        display:none;
-       }
-       .tax-toggle{
-        border: 1px solid black;
-        border-radius: 1rem;
-        height: 3.5rem;
-        padding:   0.5rem;
-        margin-left: 1rem;
-        display: flex;
-        align-items: center;
-       }
-    </style>
+<link rel="stylesheet" href="/css/listing-filters.css">
 
-     <div id="filters">
-            <div class="filter">
-                <div><i class="fa-solid fa-fire"></i></div>
-                <p>Trending</p>
-
+<div class="filter-container">
+    <!-- Existing filter section remains the same -->
+    <div class="filter-section">
+        <div class="filter-group">
+            <label class="filter-label">Price Range</label>
+            <div class="price-filter">
+                <input type="number" id="min-price" class="price-input" placeholder="Min Price" min="0">
+                <span>to</span>
+                <input type="number" id="max-price" class="price-input" placeholder="Max Price" min="0">
             </div>
-            <div class="filter">
-                <div><i class="fa-solid fa-bed"></i></div>
-                <p>Bed</p>
-
-            </div>
-            <div class="filter">
-                <div><i class="fa-solid fa-mountain-city"></i></div>
-                <p>Iconic city</p>
-
-            </div>
-            <div class="filter">
-                <div><i class="fa-solid fa-mountain"></i></div>
-                <p>Mountains</p>
-
-            </div>
-            <div class="filter">
-                <div><i class="fa-brands fa-fort-awesome"></i></div>
-                <p>Castles</p>
-
-            </div>
-            <div class="filter">
-                <div><i class="fa-solid fa-person-swimming"></i></div>
-                <p>Amazing pool</p>
-
-            </div>
-            <div class="filter">
-                <div><i class="fa-solid fa-campground"></i></div>
-                <p>Camping</p>
-
-            </div>
-            <div class="filter">
-                <div><i class="fa-solid fa-tractor"></i></div>
-                <p>Farms</p>
-
-            </div>
-            <div class="filter">
-                <div><i class="fa-solid fa-snowflake"></i></div>
-                <p>Arctic</p>
-
-            </div>
-            <div class="filter">
-                <div><i class="fa-solid fa-sailboat"></i></div>
-                <p>Boathouse</p>
-
-            </div>
-           
-            <div class="tax-toggle">
-                <div class="form-check-reverse form-switch">
-                    <input class="form-check-input" type="checkbox" role="switch" id="flexSwitchCheckDefault">
-                    <label class="form-check-label" for="flexSwitchCheckDefault">Display total after taxes</label>
-                  </div>
-            </div>
-     </div>
-        <div class="row row-cols-lg-3 row-cols-md-2 row-cols-sm-1 mt-3">
-            <% for(listing of allListings){ %> 
-                <a href="/listings/<%= listing._id %>" class="listing-link">
-                <div class="card col listing-card">
-                    <img src="<%= listing.image.url %>" class="card-img-top" alt="listing_img" style="height: 20rem">
-                    <div class="card-img-overlay"></div>
-                    <div class="card-body">
-                        <p class="card-text">
-                           <b> <%= listing.title %></b><br>
-                           &#8377;  <%= listing.price ? listing.price.toLocaleString("en-IN") : 'Price not available' %>/night
-                            <i class="tax-info">&nbsp; &nbsp;+18% GST</i>
-                        </p>
-                    </div>
-                </div>
-            </a>
-                <% } %>
         </div>
-       <script>
-        let taxSwitch=document.getElementById("flexSwitchCheckDefault");
-        taxSwitch.addEventListener("click",()=>{
-            let taxInfo=document.getElementsByClassName("tax-info");
-            for(info of taxInfo){
-               if(info.style.display != "inline")  
-               info.style.display="inline";
-                else
-                info.style.display="none";
-            }
-        })
-       </script>
-                
-   
+        
+        <div class="filter-group">
+            <label class="filter-label">Country</label>
+            <select id="country-select" class="country-select">
+                <option value="">All Countries</option>
+                <% let countries = [...new Set(allListings.map(listing => listing.country))].sort(); %>
+                <% for(let country of countries) { %>
+                    <option value="<%= country %>"><%= country %></option>
+                <% } %>
+            </select>
+        </div>
+
+        <div class="filter-group">
+            <div class="filter-buttons">
+                <button id="apply-filters" class="filter-btn apply-btn">Apply Filters</button>
+                <button id="clear-filters" class="filter-btn clear-btn">Clear Filters</button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="active-filters" class="active-filters"></div>
+    <div id="results-count" class="results-count"></div>
+</div>
+
+<div id="listings-container" class="row row-cols-lg-3 row-cols-md-2 row-cols-sm-1 mt-3">
+    <% for(listing of allListings){ %> 
+        <a href="/listings/<%= listing._id %>" class="listing-link" 
+           data-title="<%= listing.title %>"
+           data-location="<%= listing.location %>"
+           data-country="<%= listing.country %>"
+           data-price="<%= listing.price %>">
+            <div class="card col listing-card">
+                <img src="<%= listing.image.url %>" class="card-img-top" alt="listing_img" style="height: 20rem">
+                <div class="card-img-overlay"></div>
+                <div class="card-body">
+                    <p class="card-text">
+                        <b><%= listing.title %></b><br>
+                        <span class="listing-location"><%= listing.location %></span><br>
+                        &#8377;<%= listing.price ? listing.price.toLocaleString("en-IN") : 'Price not available' %>/night
+                        <span class="listing-country"><%= listing.country %></span>
+                    </p>
+                </div>
+            </div>
+        </a>
+    <% } %>
+</div>
+
+<!-- No results message -->
+<div id="no-results-message" class="text-center mt-4" style="display: none;">
+    <h3>No listings found matching your search criteria</h3>
+</div>
+
+<script src="/js/listing-filters.js"></script>
+<script src="/js/search.js"></script>
